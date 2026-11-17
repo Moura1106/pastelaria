@@ -1,0 +1,13 @@
+{
+  "name": "Caixa da Pastelaria",
+  "short_name": "Caixa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffbf5",
+  "theme_color": "#b45309",
+  "icons": [
+    { "src": "/static/icone-192.png?v=2", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icone-512.png?v=2", "sizes": "512x512", "type": "image/png" },
+    { "src": "/static/icone.svg?v=2", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -1,0 +1,18 @@
+{% macro campo(f) %}
+  {% if f.type == 'BooleanField' %}
+    <label class="campo campo-check">{{ f(**kwargs) }} <span>{{ f.label.text }}</span></label>
+  {% else %}
+    <label class="campo">
+      <span>{{ f.label.text }}</span>
+      {{ f(**kwargs) }}
+      {% for erro in f.errors %}<small class="erro">{{ erro }}</small>{% endfor %}
+    </label>
+  {% endif %}
+{% endmacro %}
+
+{% macro botao_post(acao, texto, classe='btn-sec', confirmar=None) %}
+  <form method="post" action="{{ acao }}"{% if confirmar %} onsubmit="return confirm({{ confirmar | tojson | forceescape }})"{% endif %}>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="{{ classe }}">{{ texto }}</button>
+  </form>
+{% endmacro %}

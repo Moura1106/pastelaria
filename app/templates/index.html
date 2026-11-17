@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Olá, {{ current_user.nome }}!</h1>
+
+{% if contas.vencidas %}
+<a class="aviso aviso-erro aviso-link" href="{{ url_for('despesas.lista') }}">
+  {{ contas.vencidas }} {{ 'conta vencida' if contas.vencidas == 1 else 'contas vencidas' }} sem pagamento:
+  {{ contas.valor_vencido | brl }}. Ver contas ›
+</a>
+{% endif %}
+
+<div class="resumo">
+  <div class="cartao destaque">
+    <span class="rotulo">Vendas de hoje</span>
+    <strong class="valor-grande positivo">{{ hoje.liquido | brl }}</strong>
+    <small>{{ hoje.quantidade }} {{ 'venda' if hoje.quantidade == 1 else 'vendas' }} · líquido, já sem as taxas</small>
+  </div>
+  <div class="cartao destaque">
+    <span class="rotulo">Falta pagar neste mês</span>
+    <strong class="valor-grande">{{ contas.a_pagar_mes | brl }}</strong>
+    <small>contas e parcelas em aberto</small>
+  </div>
+</div>
+
+<div class="atalhos">
+  <a class="atalho principal" href="{{ url_for('receitas.nova') }}">+ Lançar venda</a>
+  <a class="atalho principal" href="{{ url_for('despesas.nova') }}">+ Lançar despesa</a>
+  <a class="atalho" href="{{ url_for('receitas.lista') }}">Vendas do mês</a>
+  <a class="atalho" href="{{ url_for('despesas.lista') }}">Contas do mês</a>
+  <a class="atalho" href="{{ url_for('relatorios.index') }}">Relatórios</a>
+  <a class="atalho" href="{{ url_for('main.ajustes') }}">Ajustes</a>
+</div>
+{% endblock %}

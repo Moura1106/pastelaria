@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, botao_post %}
+{% block titulo %}Categorias{% endblock %}
+{% block conteudo %}
+<h1>Categorias</h1>
+<p class="dica">Separam as entradas e os gastos nos relatórios. Uma categoria desativada some dos formulários, mas os lançamentos antigos continuam com ela.</p>
+
+<form method="post" class="cartao">
+  {{ form.hidden_tag() }}
+  <h2>Nova categoria</h2>
+  <div class="linha">
+    {{ campo(form.nome, placeholder="Ex.: Carvão") }}
+    {{ campo(form.tipo) }}
+  </div>
+  <button type="submit" class="btn">Adicionar</button>
+</form>
+
+{% for titulo, itens in [("Despesas", despesas), ("Receitas", receitas)] %}
+<section class="cartao">
+  <h2>{{ titulo }}</h2>
+  <ul class="lista">
+    {% for c in itens %}
+    <li class="{{ 'inativo' if not c.ativa }}">
+      <span class="nome">{{ c.nome }}{% if not c.ativa %} <em>(desativada)</em>{% endif %}</span>
+      <span class="acoes">
+        <a class="btn-sec" href="{{ url_for('cadastros.editar_categoria', id=c.id) }}">Editar</a>
+        {{ botao_post(url_for('cadastros.alternar_categoria', id=c.id), 'Desativar' if c.ativa else 'Reativar') }}
+      </span>
+    </li>
+    {% else %}
+    <li class="vazio">Nenhuma categoria cadastrada.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% endblock %}

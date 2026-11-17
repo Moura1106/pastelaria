@@ -1,0 +1,30 @@
+{# Uma parcela na lista, com o botão de pagar. Espera: p, hoje, voltar, mostrar_despesa #}
+<li class="parcela {{ 'paga' if p.paga else ('vencida' if p.vencimento < hoje else '') }}">
+  <span class="nome">
+    {% if mostrar_despesa %}
+      <a href="{{ url_for('despesas.detalhe', id=p.despesa.id) }}">{{ p.despesa.descricao }}</a>
+      {% if p.despesa.num_parcelas > 1 %}<span class="selo">{{ p.numero }}/{{ p.despesa.num_parcelas }}</span>{% endif %}
+      {% if p.despesa.fixa_id %}<span class="selo">fixa</span>{% endif %}
+    {% else %}
+      {{ p.numero }}ª parcela
+    {% endif %}
+    <small>
+      {% if p.paga %}Paga em {{ p.data_pagamento | data_br }}
+      {% elif p.vencimento < hoje %}Venceu em {{ p.vencimento | data_br }}
+      {% else %}Vence em {{ p.vencimento | data_br }}{% endif %}
+      {% if mostrar_despesa %} · {{ p.despesa.categoria.nome }}{% if p.despesa.fornecedor %} · {{ p.despesa.fornecedor }}{% endif %}{% endif %}
+    </small>
+  </span>
+  <span class="acoes">
+    <strong class="valor">{{ p.valor | brl }}</strong>
+    <form method="post" action="{{ url_for('despesas.pagar_parcela', id=p.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="voltar" value="{{ voltar }}">
+      {% if p.paga %}
+        <button type="submit" class="btn-sec">Desfazer</button>
+      {% else %}
+        <button type="submit" class="btn-pagar">Paguei</button>
+      {% endif %}
+    </form>
+  </span>
+</li>

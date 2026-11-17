@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, botao_post %}
+{% block titulo %}Despesas fixas{% endblock %}
+{% block conteudo %}
+<p><a class="link-sec" href="{{ url_for('despesas.lista') }}">‹ Despesas</a></p>
+<h1>Despesas fixas</h1>
+<p class="dica">Contas que se repetem todo mês, como aluguel, luz e internet. O sistema lança a conta de cada mês sozinho, e ela aparece em <strong>Contas do mês</strong> para marcar como paga. Se o valor de um mês vier diferente (luz, água), é só editar a conta daquele mês.</p>
+
+<form method="post" class="cartao">
+  {{ form.hidden_tag() }}
+  <h2>Nova despesa fixa</h2>
+  {% include "fixas/_campos.html" %}
+  <button type="submit" class="btn">Cadastrar</button>
+</form>
+
+<section class="cartao">
+  <ul class="lista">
+    {% for f in fixas %}
+    <li class="{{ 'inativo' if not f.ativa }}">
+      <span class="nome">
+        {{ f.descricao }}{% if not f.ativa %} <em>(desativada)</em>{% endif %}
+        <small>Todo dia {{ f.dia_vencimento }} · {{ f.categoria.nome }} · {{ f.forma_pagto.nome }}{% if f.fornecedor %} · {{ f.fornecedor }}{% endif %}</small>
+      </span>
+      <span class="acoes">
+        <strong class="valor">{{ f.valor | brl }}</strong>
+        <a class="btn-sec" href="{{ url_for('fixas.editar', id=f.id) }}">Editar</a>
+        {% if f.ativa %}
+          {{ botao_post(url_for('fixas.alternar', id=f.id), 'Desativar',
+                        confirmar='Desativar “' ~ f.descricao ~ '”? As contas dos próximos meses ainda não pagas serão removidas.') }}
+        {% else %}
+          {{ botao_post(url_for('fixas.alternar', id=f.id), 'Reativar') }}
+        {% endif %}
+        {{ botao_post(url_for('fixas.excluir', id=f.id), 'Excluir', 'btn-perigo btn-pequeno',
+                      confirmar='Excluir “' ~ f.descricao ~ '”? As contas dela ainda não pagas também serão apagadas. Use isto para lançamentos feitos por engano; para uma conta que acabou, prefira Desativar.') }}
+      </span>
+    </li>
+    {% else %}
+    <li class="vazio">Nenhuma despesa fixa cadastrada.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

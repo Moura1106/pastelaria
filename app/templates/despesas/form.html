@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+{% if not despesa %}
+<p class="dica">Conta que se repete todo mês (aluguel, luz, internet)? Cadastre em <a href="{{ url_for('fixas.lista') }}">Despesas fixas</a> e ela será lançada sozinha.</p>
+{% endif %}
+
+<form method="post" class="cartao">
+  {{ form.hidden_tag() }}
+  <div class="linha">
+    {{ campo(form.descricao) }}
+    {{ campo(form.valor_total) }}
+  </div>
+  <div class="linha">
+    {{ campo(form.categoria_id) }}
+    {{ campo(form.fornecedor, placeholder="Ex.: Distribuidora Silva") }}
+  </div>
+  <datalist id="fornecedores">
+    {% for f in fornecedores %}<option value="{{ f }}">{% endfor %}
+  </datalist>
+  <div class="linha">
+    {{ campo(form.data_compra) }}
+    {{ campo(form.forma_pagto_id) }}
+  </div>
+  <div class="linha">
+    {{ campo(form.num_parcelas) }}
+    {{ campo(form.primeiro_vencimento) }}
+  </div>
+  {% if form.ja_paga %}{{ campo(form.ja_paga) }}{% endif %}
+
+  <div id="previa" class="previa" aria-live="polite"></div>
+
+  <div class="botoes">
+    {% if despesa %}
+      <button type="submit" class="btn">Salvar</button>
+      <a class="link-sec" href="{{ url_for('despesas.detalhe', id=despesa.id) }}">Cancelar</a>
+    {% else %}
+      <button type="submit" name="outra" value="1" class="btn">Salvar e lançar outra</button>
+      <button type="submit" class="btn-sec">Salvar</button>
+      <a class="link-sec" href="{{ url_for('despesas.lista') }}">Cancelar</a>
+    {% endif %}
+  </div>
+  {% if despesa and despesa.parcelas | selectattr('paga') | list %}
+    <p class="dica">Se mudar o valor, as parcelas ou o vencimento, as parcelas são recalculadas. As que já estavam pagas continuam marcadas.</p>
+  {% endif %}
+</form>
+
+<script>
+(function () {
+  const valor = document.getElementById("valor_total");
+  const parcelas = document.getElementById("num_parcelas");
+  const vencimento = document.getElementById("primeiro_vencimento");
+  const compra = document.getElementById("data_compra");
+  const jaPaga = document.getElementById("ja_paga");
+  const previa = document.getElementById("previa");
+  let jaPagaMexida = false;
+
+  function numero(texto) {
+    texto = texto.replace(/R\$|\s/g, "");
+    if (texto.includes(",")) texto = texto.replace(/\./g, "").replace(",", ".");
+    return parseFloat(texto);
+  }
+  function moeda(centavos) {
+    return (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  function lerData(texto) {
+    if (!texto) return null;
+    const [a, m, d] = texto.split("-").map(Number);
+    return new Date(a, m - 1, d);
+  }
+  function somarMeses(data, meses) {
+    const ultimoDia = new Date(data.getFullYear(), data.getMonth() + meses + 1, 0).getDate();
+    return new Date(data.getFullYear(), data.getMonth() + meses, Math.min(data.getDate(), ultimoDia));
+  }
+  function dataBR(data) { return data.toLocaleDateString("pt-BR"); }
+
+  function atualizar() {
+    const n = Math.min(Math.max(parseInt(parcelas.value, 10) || 1, 1), 48);
+    const base = lerData(vencimento.value) || lerData(compra.value);
+    const v = numero(valor.value);
+
+    if (jaPaga) {
+      jaPaga.closest("label").hidden = n > 1;
+      // Pagamento único com vencimento até hoje normalmente já foi pago
+      if (!jaPagaMexida && base) {
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+        jaPaga.checked = base <= hoje;
+      }
+    }
+
+    if (isNaN(v) || v <= 0 || !base) { previa.innerHTML = ""; return; }
+    const total = Math.round(v * 100);
+    if (n === 1) {
+      previa.innerHTML = "Pagamento único de <strong>" + moeda(total) + "</strong> em " + dataBR(base) + ".";
+      return;
+    }
+    const parcela = Math.floor(total / n);
+    const ultima = total - parcela * (n - 1);
+    let html = "<strong>" + n + "x</strong> de " + moeda(parcela) +
+               (ultima !== parcela ? " (última de " + moeda(ultima) + ")" : "") + "<ul>";
+    for (let i = 0; i < n; i++) {
+      html += "<li><span>" + (i + 1) + "ª · " + dataBR(somarMeses(base, i)) + "</span><span>" +
+              moeda(i === n - 1 ? ultima : parcela) + "</span></li>";
+    }
+    previa.innerHTML = html + "</ul>";
+  }
+
+  if (jaPaga) jaPaga.addEventListener("change", function () { jaPagaMexida = true; });
+  [valor, parcelas, vencimento, compra].forEach(function (el) { el.addEventListener("input", atualizar); });
+  atualizar();
+})();
+</script>
+{% endblock %}

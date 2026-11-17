@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import botao_post %}
+{% block titulo %}{{ despesa.descricao }}{% endblock %}
+{% block conteudo %}
+<p><a class="link-sec" href="{{ url_for('despesas.lista', mes=despesa.data_compra.strftime('%Y-%m'), ver='compras') }}">‹ Compras de {{ despesa.data_compra | mes_ano }}</a></p>
+
+<div class="cabecalho">
+  <h1>{{ despesa.descricao }}</h1>
+  <a class="btn-sec" href="{{ url_for('despesas.editar', id=despesa.id) }}">Editar</a>
+</div>
+
+<section class="cartao">
+  <dl class="dados">
+    <dt>Valor</dt><dd>{{ despesa.valor_total | brl }}{% if despesa.num_parcelas > 1 %} em {{ despesa.num_parcelas }}x{% endif %}</dd>
+    <dt>Data da compra</dt><dd>{{ despesa.data_compra | data_br }}</dd>
+    <dt>Categoria</dt><dd>{{ despesa.categoria.nome }}</dd>
+    <dt>Forma de pagamento</dt><dd>{{ despesa.forma_pagto.nome }}</dd>
+    {% if despesa.fornecedor %}<dt>Fornecedor</dt><dd>{{ despesa.fornecedor }}</dd>{% endif %}
+  </dl>
+  {% if despesa.fixa %}
+  <p class="dica">Conta lançada automaticamente pela despesa fixa
+    <a href="{{ url_for('fixas.editar', id=despesa.fixa.id) }}">“{{ despesa.fixa.descricao }}”</a>.
+    Editar aqui muda só este mês.</p>
+  {% endif %}
+</section>
+
+<div class="resumo">
+  <div class="cartao"><span class="rotulo">Já pago</span><strong class="positivo">{{ totais.pago | brl }}</strong></div>
+  <div class="cartao">
+    <span class="rotulo">Falta pagar</span><strong>{{ totais.a_pagar | brl }}</strong>
+    {% if totais.vencido %}<small class="negativo">{{ totais.vencido | brl }} vencido</small>{% endif %}
+  </div>
+</div>
+
+<section class="cartao">
+  <h2>{{ 'Parcelas' if despesa.num_parcelas > 1 else 'Pagamento' }}</h2>
+  <ul class="lista">
+    {% set voltar = url_for('despesas.detalhe', id=despesa.id) %}
+    {% set mostrar_despesa = false %}
+    {% for p in despesa.parcelas %}{% include "despesas/_parcela.html" %}{% endfor %}
+  </ul>
+</section>
+
+{{ botao_post(url_for('despesas.excluir', id=despesa.id), 'Excluir esta despesa', 'btn-perigo',
+              confirmar='Excluir “' ~ despesa.descricao ~ '” e todas as parcelas?') }}
+{% endblock %}

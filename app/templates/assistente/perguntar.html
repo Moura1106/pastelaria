@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo %}
+{% block titulo %}Perguntar{% endblock %}
+{% block conteudo %}
+<h1>Perguntar</h1>
+<p class="dica">Pergunte sobre as vendas e as contas do caixa. O assistente só consulta os números, não altera nada.</p>
+
+{% if not ativo %}
+<div class="aviso aviso-info">O assistente ainda não foi ligado neste sistema.</div>
+{% else %}
+<form method="post" class="cartao" id="form-pergunta">
+  {{ form.hidden_tag() }}
+  {{ campo(form.pergunta) }}
+  <div class="botoes">
+    <button type="submit" class="btn" id="enviar">Perguntar</button>
+  </div>
+  <p class="dica">Ou toque em um exemplo:</p>
+  <div class="exemplos">
+    {% for texto in exemplos %}<button type="button" class="btn-sec" data-exemplo="{{ texto }}">{{ texto }}</button>{% endfor %}
+  </div>
+</form>
+
+{% if erro %}<div class="aviso aviso-erro">{{ erro }}</div>{% endif %}
+{% if resposta %}
+<section class="cartao resposta">
+  <h2>Resposta</h2>
+  <p>{{ resposta }}</p>
+  <small class="dica">Respondido por inteligência artificial com os números do sistema. Confira os valores importantes nos relatórios.</small>
+</section>
+{% endif %}
+
+<script>
+(function () {
+  const caixa = document.getElementById("pergunta");
+  document.querySelectorAll("[data-exemplo]").forEach(function (b) {
+    b.addEventListener("click", function () { caixa.value = b.dataset.exemplo; caixa.focus(); });
+  });
+  document.getElementById("form-pergunta").addEventListener("submit", function () {
+    const botao = document.getElementById("enviar");
+    botao.disabled = true;
+    botao.textContent = "Consultando o caixa...";
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

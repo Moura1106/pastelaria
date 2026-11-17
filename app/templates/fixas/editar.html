@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo %}
+{% block titulo %}Editar despesa fixa{% endblock %}
+{% block conteudo %}
+<h1>Editar despesa fixa</h1>
+<form method="post" class="cartao">
+  {{ form.hidden_tag() }}
+  {% include "fixas/_campos.html" %}
+  <p class="dica">As mudanças valem para as contas ainda não pagas deste mês em diante. Uma conta cujo valor ou vencimento você já ajustou à mão continua com o seu ajuste.</p>
+  <div class="botoes">
+    <button type="submit" class="btn">Salvar</button>
+    <a class="link-sec" href="{{ url_for('fixas.lista') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

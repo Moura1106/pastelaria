@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, botao_post %}
+{% block titulo %}Formas de pagamento{% endblock %}
+{% block conteudo %}
+<h1>Formas de pagamento</h1>
+<p class="dica">A taxa é a porcentagem que a maquininha desconta. Ela será sugerida ao lançar uma venda, e dá para ajustar em cada lançamento.</p>
+
+<form method="post" class="cartao">
+  {{ form.hidden_tag() }}
+  <h2>Nova forma de pagamento</h2>
+  <div class="linha">
+    {{ campo(form.nome, placeholder="Ex.: Vale-refeição") }}
+    {{ campo(form.taxa_padrao) }}
+  </div>
+  <button type="submit" class="btn">Adicionar</button>
+</form>
+
+<section class="cartao">
+  <ul class="lista">
+    {% for f in formas %}
+    <li class="{{ 'inativo' if not f.ativa }}">
+      <span class="nome">
+        {{ f.nome }}{% if not f.ativa %} <em>(desativada)</em>{% endif %}
+        <small>Taxa: {{ f.taxa_padrao | pct }}</small>
+      </span>
+      <span class="acoes">
+        <a class="btn-sec" href="{{ url_for('cadastros.editar_forma', id=f.id) }}">Editar</a>
+        {{ botao_post(url_for('cadastros.alternar_forma', id=f.id), 'Desativar' if f.ativa else 'Reativar') }}
+      </span>
+    </li>
+    {% else %}
+    <li class="vazio">Nenhuma forma de pagamento cadastrada.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

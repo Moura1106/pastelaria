@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block titulo %}Conferir importação{% endblock %}
+{% block conteudo %}
+<h1>Conferir importação</h1>
+
+{% if erro %}<div class="aviso aviso-erro">{{ erro }}</div>{% endif %}
+
+{% if totais.quantidade %}
+<div class="resumo">
+  <div class="cartao">
+    <span class="rotulo">Vendas novas</span>
+    <strong>{{ totais.bruto | brl }}</strong>
+    <small>{{ totais.quantidade }} {{ 'venda' if totais.quantidade == 1 else 'vendas' }}</small>
+  </div>
+  <div class="cartao">
+    <span class="rotulo">Taxas</span>
+    <strong>{{ totais.taxa | brl }}</strong>
+  </div>
+  <div class="cartao">
+    <span class="rotulo">Recebido (líquido)</span>
+    <strong class="positivo">{{ totais.liquido | brl }}</strong>
+  </div>
+</div>
+{% endif %}
+
+{% if repetidas %}
+<div class="aviso aviso-info">{{ repetidas }} {{ 'venda deste arquivo já estava' if repetidas == 1 else 'vendas deste arquivo já estavam' }} no sistema e não {{ 'será importada' if repetidas == 1 else 'serão importadas' }} de novo.</div>
+{% endif %}
+{% if ignoradas %}
+<div class="aviso aviso-info">
+  Estas linhas não são vendas e ficaram de fora:
+  <ul>{% for linha in ignoradas %}<li>{{ linha }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+{% if totais.quantidade %}
+<form method="post" action="{{ url_for('receitas.confirmar_importacao') }}" class="cartao">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="arquivo" value="{{ arquivo }}">
+  <h2>Forma de pagamento no sistema</h2>
+  <table class="tabela">
+    <thead><tr><th>No extrato</th><th>Vendido</th><th>Taxas</th><th>Lançar como</th></tr></thead>
+    <tbody>
+      {% for t in tipos %}
+      <tr>
+        <td>{{ t.nome }} <small>({{ t.quantidade }})</small></td>
+        <td>{{ t.bruto | brl }}</td>
+        <td>{{ t.taxa | brl }}</td>
+        <td>
+          <select name="forma_{{ t.chave }}" aria-label="Forma de pagamento para {{ t.nome }}">
+            {% if not t.forma_id %}<option value="">Escolha...</option>{% endif %}
+            {% for f in formas %}
+            <option value="{{ f.id }}"{% if f.id == t.forma_id %} selected{% endif %}>{{ f.nome }}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="dica">A taxa de cada venda é a que o Mercado Pago cobrou, como está no extrato.</p>
+  <div class="botoes">
+    <button type="submit" class="btn">Confirmar importação</button>
+    <a class="link-sec" href="{{ url_for('receitas.importar') }}">Cancelar</a>
+  </div>
+</form>
+{% else %}
+<p class="vazio-grande">Não há vendas novas neste arquivo.</p>
+<p><a class="btn-sec" href="{{ url_for('receitas.importar') }}">Enviar outro arquivo</a></p>
+{% endif %}
+
+{% for dia in dias %}
+<section class="cartao">
+  <div class="dia">
+    <h2>{{ dia.data | data_br(true) }}</h2>
+    <span>{{ dia.total | brl }}</span>
+  </div>
+  <ul class="lista">
+    {% for v, repetida in dia.itens %}
+    <li{% if repetida %} class="inativo"{% endif %}>
+      <span class="nome">
+        {{ v.bruto | brl }} · {{ tipos_nomes[v.tipo] }}
+        <small>{{ v.momento.strftime('%H:%M') }} · {{ v.detalhe }} · taxa {{ v.taxa | brl }} · líquido {{ v.liquido | brl }}</small>
+      </span>
+      {% if repetida %}<span class="selo">já importada</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% endblock %}

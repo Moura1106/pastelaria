@@ -1,0 +1,29 @@
+# Ambiente e segredos
+.venv/
+venv/
+.env
+*.key
+*.pem
+
+# Bancos de dados e backups
+*.db
+*.db.gz
+*.sqlite
+*.sqlite3
+instance/
+backups/
+
+# Dados reais / exemplos de extratos
+ARQUIVO CSV/
+exemplos/
+
+# Python / testes / build
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+
+# Editor / SO
+.vscode/
+.idea/
+Thumbs.db

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo %}
+{% block titulo %}Importar extrato{% endblock %}
+{% block conteudo %}
+<h1>Importar extrato</h1>
+<p class="dica">Envie o extrato de vendas do Mercado Pago (.csv). Antes de gravar, o sistema mostra as vendas para você conferir.
+  Vendas que já foram importadas são puladas, então não tem problema enviar um arquivo com dias repetidos.</p>
+
+<form method="post" enctype="multipart/form-data" class="cartao">
+  {{ form.hidden_tag() }}
+  {{ campo(form.arquivo) }}
+  <div class="botoes">
+    <button type="submit" class="btn">Ver as vendas do arquivo</button>
+    <a class="link-sec" href="{{ url_for('receitas.lista') }}">Cancelar</a>
+  </div>
+</form>
+
+<p class="dica">Vendas em dinheiro não aparecem no extrato: continue lançando essas pelo botão “Lançar venda”.</p>
+{% endblock %}

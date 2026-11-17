@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block titulo %}Ajustes{% endblock %}
+{% block conteudo %}
+<h1>Ajustes</h1>
+<div class="atalhos">
+  <a class="atalho" href="{{ url_for('fixas.lista') }}">Despesas fixas <small>aluguel, luz, internet...</small></a>
+  <a class="atalho" href="{{ url_for('cadastros.categorias') }}">Categorias <small>tipos de gasto e de entrada</small></a>
+  <a class="atalho" href="{{ url_for('cadastros.formas') }}">Formas de pagamento <small>e taxas da maquininha</small></a>
+  <a class="atalho" href="{{ url_for('auth.minha_conta') }}">Minha conta <small>trocar a senha</small></a>
+</div>
+{% endblock %}

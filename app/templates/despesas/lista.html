@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block titulo %}Despesas{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <h1>Despesas</h1>
+  <span class="botoes">
+    <a class="btn-sec" href="{{ url_for('fixas.lista') }}">Despesas fixas</a>
+    <a class="btn" href="{{ url_for('despesas.nova') }}">+ Lançar despesa</a>
+  </span>
+</div>
+
+<nav class="nav-mes">
+  <a href="{{ url_for('despesas.lista', mes=anterior.strftime('%Y-%m'), ver=ver) }}" aria-label="Mês anterior">‹</a>
+  <strong>{{ mes | mes_ano }}</strong>
+  <a href="{{ url_for('despesas.lista', mes=proximo.strftime('%Y-%m'), ver=ver) }}" aria-label="Próximo mês">›</a>
+</nav>
+
+<nav class="abas">
+  <a href="{{ url_for('despesas.lista', mes=mes.strftime('%Y-%m')) }}" class="{{ 'ativa' if ver == 'contas' }}">Contas do mês</a>
+  <a href="{{ url_for('despesas.lista', mes=mes.strftime('%Y-%m'), ver='compras') }}" class="{{ 'ativa' if ver == 'compras' }}">Compras feitas no mês</a>
+</nav>
+
+{% if ver == 'contas' %}
+  {% set qtd_antes, primeira_antes = atrasadas_antes %}
+  {% if qtd_antes %}
+  <a class="aviso aviso-erro aviso-link" href="{{ url_for('despesas.lista', mes=primeira_antes.strftime('%Y-%m')) }}">
+    Há {{ qtd_antes }} {{ 'conta vencida' if qtd_antes == 1 else 'contas vencidas' }} de meses anteriores sem pagamento. Ver ›
+  </a>
+  {% endif %}
+
+  <div class="resumo">
+    <div class="cartao"><span class="rotulo">Total do mês</span><strong>{{ totais.total | brl }}</strong></div>
+    <div class="cartao"><span class="rotulo">Já pago</span><strong class="positivo">{{ totais.pago | brl }}</strong></div>
+    <div class="cartao">
+      <span class="rotulo">Falta pagar</span><strong>{{ totais.a_pagar | brl }}</strong>
+      {% if totais.vencido %}<small class="negativo">{{ totais.vencido | brl }} vencido</small>{% endif %}
+    </div>
+  </div>
+
+  {% if parcelas %}
+  <section class="cartao">
+    <ul class="lista">
+      {% set voltar = request.full_path %}
+      {% set mostrar_despesa = true %}
+      {% for p in parcelas %}{% include "despesas/_parcela.html" %}{% endfor %}
+    </ul>
+  </section>
+  {% else %}
+  <p class="vazio-grande">Nenhuma conta com vencimento em {{ mes | mes_ano }}.</p>
+  {% endif %}
+
+{% else %}
+  <div class="resumo">
+    <div class="cartao">
+      <span class="rotulo">Comprado no mês</span><strong>{{ total_compras | brl }}</strong>
+      <small>{{ despesas | length }} {{ 'compra' if despesas | length == 1 else 'compras' }} (inclui o valor total das parceladas)</small>
+    </div>
+  </div>
+
+  {% if despesas %}
+  <section class="cartao">
+    <ul class="lista">
+      {% for d in despesas %}
+      <li>
+        <span class="nome">
+          <a href="{{ url_for('despesas.detalhe', id=d.id) }}">{{ d.descricao }}</a>
+          <small>{{ d.data_compra | data_br }} · {{ d.categoria.nome }} · {{ d.forma_pagto.nome }}{% if d.fornecedor %} · {{ d.fornecedor }}{% endif %}</small>
+        </span>
+        <span class="acoes">
+          <strong class="valor">{{ d.valor_total | brl }}{% if d.num_parcelas > 1 %} <small>em {{ d.num_parcelas }}x</small>{% endif %}</strong>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% else %}
+  <p class="vazio-grande">Nenhuma compra lançada em {{ mes | mes_ano }}.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

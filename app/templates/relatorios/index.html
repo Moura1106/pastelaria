@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block titulo %}Relatórios{% endblock %}
+
+{% macro largura(valor, maximo) -%}
+  {{ ((valor / maximo * 100) if maximo else 0) | round(1) }}%
+{%- endmacro %}
+
+{% block conteudo %}
+<h1>Relatórios</h1>
+
+<nav class="nav-mes">
+  <a href="{{ url_for('relatorios.index', mes=anterior.strftime('%Y-%m')) }}" aria-label="Mês anterior">‹</a>
+  <strong>{{ mes | mes_ano }}</strong>
+  <a href="{{ url_for('relatorios.index', mes=proximo.strftime('%Y-%m')) }}" aria-label="Próximo mês">›</a>
+</nav>
+
+{# ---------- Resultado do mês ---------- #}
+<div class="resumo">
+  <div class="cartao">
+    <span class="rotulo"><i class="amostra entradas"></i>Entradas</span>
+    <strong>{{ resumo.entradas | brl }}</strong>
+    <small>vendido {{ resumo.bruto | brl }} − taxas {{ resumo.taxas | brl }}</small>
+  </div>
+  <div class="cartao">
+    <span class="rotulo"><i class="amostra saidas"></i>Saídas</span>
+    <strong>{{ resumo.saidas | brl }}</strong>
+    <small>{% if resumo.a_pagar %}{{ resumo.a_pagar | brl }} ainda a pagar{% else %}contas e parcelas do mês{% endif %}</small>
+  </div>
+  <div class="cartao">
+    {% if resumo.resultado >= 0 %}
+      <span class="rotulo">Sobrou</span>
+      <strong class="positivo">{{ resumo.resultado | brl }}</strong>
+    {% else %}
+      <span class="rotulo">Faltou</span>
+      <strong class="negativo">{{ resumo.resultado | brl }}</strong>
+    {% endif %}
+    <small>entradas − saídas</small>
+  </div>
+</div>
+<p class="dica">Compras parceladas entram pelo valor da parcela que vence em cada mês.</p>
+
+{# ---------- Gastos por categoria ---------- #}
+<section class="cartao">
+  <h2>Para onde foi o dinheiro</h2>
+  {% if categorias %}
+  <ul class="barras-h">
+    {% for c in categorias %}
+    <li>
+      <span class="barras-h-nome">{{ c.nome }}</span>
+      <span class="barras-h-trilho">
+        <span class="barra saidas" style="width: {{ largura(c.total, maior_categoria) }}"></span>
+      </span>
+      <span class="barras-h-valor">
+        {{ c.total | brl }}
+        <small>{{ (c.total / resumo.saidas * 100) | round | int if resumo.saidas else 0 }}%</small>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="vazio">Nenhuma despesa vencendo em {{ mes | mes_ano }}.</p>
+  {% endif %}
+</section>
+
+{# ---------- Comparativo entre meses ---------- #}
+<section class="cartao">
+  <h2>Últimos {{ comparativo | length }} meses</h2>
+  <div class="legenda">
+    <span><i class="amostra entradas"></i>Entradas</span>
+    <span><i class="amostra saidas"></i>Saídas</span>
+  </div>
+  <div class="colunas" role="img" aria-label="Entradas e saídas dos últimos meses. Os valores estão na tabela abaixo.">
+    {% for m in comparativo %}
+    <div class="coluna-grupo {{ 'atual' if m.mes == mes }}">
+      <div class="coluna-barras">
+        <span class="barra-v entradas" style="height: {{ largura(m.entradas, maior_comparativo) }}"
+              tabindex="0" data-dica="Entradas {{ m.mes | mes_curto }}: {{ m.entradas | brl }}"></span>
+        <span class="barra-v saidas" style="height: {{ largura(m.saidas, maior_comparativo) }}"
+              tabindex="0" data-dica="Saídas {{ m.mes | mes_curto }}: {{ m.saidas | brl }}"></span>
+      </div>
+      <span class="coluna-rotulo">{{ m.mes | mes_curto }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <table class="tabela">
+    <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Resultado</th></tr></thead>
+    <tbody>
+      {% for m in comparativo | reverse %}
+      <tr class="{{ 'atual' if m.mes == mes }}">
+        <td><a href="{{ url_for('relatorios.index', mes=m.mes.strftime('%Y-%m')) }}">{{ m.mes | mes_curto }}</a></td>
+        <td>{{ m.entradas | brl }}</td>
+        <td>{{ m.saidas | brl }}</td>
+        <td class="{{ 'positivo' if m.resultado >= 0 else 'negativo' }}">{{ m.resultado | brl }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{# ---------- Compromissos futuros ---------- #}
+<section class="cartao">
+  <h2>Contas a pagar nos próximos meses</h2>
+  <p class="dica">O que ainda está em aberto, a partir deste mês, contando as parcelas já assumidas.</p>
+  <ul class="barras-h">
+    {% for c in compromissos %}
+    <li>
+      <span class="barras-h-nome">
+        <a href="{{ url_for('despesas.lista', mes=c.mes.strftime('%Y-%m')) }}">{{ c.mes | mes_curto }}</a>
+      </span>
+      <span class="barras-h-trilho">
+        <span class="barra saidas" style="width: {{ largura(c.total, maior_compromisso) }}"></span>
+      </span>
+      <span class="barras-h-valor">
+        {{ c.total | brl }}
+        <small>{{ c.quantidade }} {{ 'conta' if c.quantidade == 1 else 'contas' }}</small>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="cartao">
+  <h2>Baixar planilha (Excel)</h2>
+  <p class="dica">Com resumo, vendas, contas e compras, para conferir ou guardar uma cópia.</p>
+  <div class="botoes">
+    <a class="btn-sec" href="{{ url_for('relatorios.planilha', mes=mes.strftime('%Y-%m')) }}">{{ mes | mes_ano | capitalize }}</a>
+    <a class="btn-sec" href="{{ url_for('relatorios.planilha', ano=mes.year) }}">Ano de {{ mes.year }} inteiro</a>
+  </div>
+</section>
+{% endblock %}

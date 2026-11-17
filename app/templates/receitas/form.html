@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, botao_post %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+
+<form method="post" class="cartao" id="form-venda">
+  {{ form.hidden_tag() }}
+  <div class="linha">
+    {{ campo(form.valor_bruto) }}
+    {{ campo(form.data) }}
+  </div>
+  <div class="linha">
+    {{ campo(form.forma_pagto_id) }}
+    {{ campo(form.taxa) }}
+  </div>
+  <p class="liquido">Valor líquido: <strong id="liquido">—</strong></p>
+  <div class="linha">
+    {{ campo(form.categoria_id) }}
+    {{ campo(form.descricao, placeholder="Ex.: encomenda de 50 pastéis") }}
+  </div>
+
+  <div class="botoes">
+    {% if receita %}
+      <button type="submit" class="btn">Salvar</button>
+    {% else %}
+      <button type="submit" name="outra" value="1" class="btn">Salvar e lançar outra</button>
+      <button type="submit" class="btn-sec">Salvar</button>
+    {% endif %}
+    <a class="link-sec" href="{{ url_for('receitas.lista') }}">Cancelar</a>
+  </div>
+</form>
+
+{% if receita %}
+  {{ botao_post(url_for('receitas.excluir', id=receita.id), 'Excluir esta venda', 'btn-perigo',
+                confirmar='Excluir esta venda de ' ~ (receita.valor_bruto | brl) ~ '?') }}
+{% endif %}
+
+<script>
+(function () {
+  const valor = document.getElementById("valor_bruto");
+  const forma = document.getElementById("forma_pagto_id");
+  const taxa = document.getElementById("taxa");
+  const liquido = document.getElementById("liquido");
+  // Se a taxa já veio preenchida (edição), não recalcula sozinho
+  let taxaManual = taxa.value.trim() !== "";
+
+  function numero(texto) {
+    texto = texto.replace(/R\$|\s|%/g, "");
+    if (texto.includes(",")) texto = texto.replace(/\./g, "").replace(",", ".");
+    return parseFloat(texto);
+  }
+  function moeda(v) {
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  function atualizar() {
+    const v = numero(valor.value);
+    if (!taxaManual) {
+      const opcao = forma.options[forma.selectedIndex];
+      const pct = parseFloat(opcao ? opcao.dataset.taxa : "0") || 0;
+      taxa.value = isNaN(v) ? "" : (Math.round(v * pct) / 100).toFixed(2).replace(".", ",");
+    }
+    const t = numero(taxa.value) || 0;
+    liquido.textContent = isNaN(v) ? "—" : moeda(v - t);
+  }
+
+  taxa.addEventListener("input", function () { taxaManual = taxa.value.trim() !== ""; atualizar(); });
+  valor.addEventListener("input", atualizar);
+  forma.addEventListener("change", function () { taxaManual = false; atualizar(); });
+  atualizar();
+})();
+</script>
+{% endblock %}

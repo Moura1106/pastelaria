@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+<form method="post" class="cartao">
+  {{ form.hidden_tag() }}
+  {% for f in form if f.type not in ('CSRFTokenField', 'HiddenField') %}
+    {{ campo(f) }}
+  {% endfor %}
+  <div class="botoes">
+    <button type="submit" class="btn">Salvar</button>
+    <a class="btn-sec" href="{{ voltar }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

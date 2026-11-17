@@ -1,0 +1,17 @@
+{# Campos do formulário de despesa fixa, usados no cadastro e na edição #}
+<div class="linha">
+  {{ campo(form.descricao) }}
+  {{ campo(form.valor) }}
+</div>
+<div class="linha">
+  {{ campo(form.dia_vencimento) }}
+  {% if form.inicio %}{{ campo(form.inicio) }}{% endif %}
+</div>
+<div class="linha">
+  {{ campo(form.categoria_id) }}
+  {{ campo(form.forma_pagto_id) }}
+</div>
+{{ campo(form.fornecedor, placeholder="Ex.: Companhia de energia") }}
+<datalist id="fornecedores">
+  {% for f in fornecedores %}<option value="{{ f }}">{% endfor %}
+</datalist>

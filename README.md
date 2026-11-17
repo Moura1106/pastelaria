@@ -45,10 +45,25 @@ Python 3.11 · Flask · SQLAlchemy · Flask-Migrate (Alembic) · Flask-Login · 
 
 ## Rodar no computador (com dados fictícios)
 
+Precisa do [Python 3.10 ou mais novo](https://www.python.org/downloads/) (na instalação, marque
+"Add python.exe to PATH").
+
+**1. Baixe o código** para uma pasta de caminho curto, como `C:\projetos`: botão **Code → Download ZIP**
+(e extraia) ou
+
+```powershell
+git clone https://github.com/Moura1106/pastelaria.git C:\projetos\pastelaria
+```
+
+**2a. Jeito mais fácil (Windows):** dê dois cliques em **`iniciar_demo.bat`**. Na primeira vez ele cria o
+ambiente, instala as bibliotecas e monta o banco de exemplo (leva alguns minutos); depois só liga o servidor.
+O navegador abre sozinho na tela de login.
+
+**2b. Ou passo a passo** (PowerShell, dentro da pasta do projeto):
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\pip install -r requirements.txt
-copy .env.exemplo .env              # e preencha a SECRET_KEY
 .\.venv\Scripts\flask db upgrade    # cria as tabelas
 .\.venv\Scripts\flask dados-demo    # usuário, vendas, despesas e um extrato CSV falso
 .\.venv\Scripts\flask run
@@ -56,11 +71,24 @@ copy .env.exemplo .env              # e preencha a SECRET_KEY
 
 Abra http://127.0.0.1:5000 e entre com `demo@exemplo.com` / `demo12345`.
 
+O arquivo `.env` é opcional para testar no computador; para publicar, copie `.env.exemplo` para `.env` e
+defina uma `SECRET_KEY` própria (veja o [DEPLOY.md](DEPLOY.md)).
+
 O `dados-demo` também grava `demo/extrato_mercado_pago_demo.csv`: use-o em **Vendas → Importar extrato**
 para testar a importação. O comando recusa rodar se o banco já tiver dados, para nunca misturar a demonstração
 com informações reais.
 
-No Linux/macOS, troque `.\.venv\Scripts\` por `.venv/bin/` e `copy` por `cp`.
+No Linux/macOS, troque `.\.venv\Scripts\` por `.venv/bin/`.
+
+### Se der erro
+
+- **`No such file or directory` / aviso sobre "Long Path" no `pip install`:** o caminho da pasta é longo
+  demais para o Windows. Mova o projeto para algo como `C:\projetos\pastelaria`, apague a pasta `.venv` e rode
+  de novo.
+- **`No such command 'db'` ou `'dados-demo'`:** as bibliotecas não foram instaladas (veja o erro do
+  `pip install`) ou o comando foi rodado fora da pasta do projeto.
+- **`python` não é reconhecido / abre a Microsoft Store:** instale o Python pelo site e marque
+  "Add python.exe to PATH".
 
 ## Comandos
 

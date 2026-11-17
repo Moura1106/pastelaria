@@ -16,6 +16,7 @@ backups/
 # Dados reais / exemplos de extratos
 ARQUIVO CSV/
 exemplos/
+demo/
 
 # Python / testes / build
 __pycache__/
